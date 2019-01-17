@@ -2,14 +2,12 @@ package main
 
 import (
 	"crypto/tls"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
 	"os"
-	"os/user"
-	"path/filepath"
-	"strings"
 
 	"github.com/chzyer/readline"
 	"github.com/fatih/color"
@@ -39,29 +37,15 @@ var cmdClient = &cobra.Command{
 			os.Exit(1)
 		}
 
-		var origin string
-		if options.origin != "" {
-			origin = options.origin
+		originURL := *dest
+		if dest.Scheme == "wss" {
+			originURL.Scheme = "https"
 		} else {
-			originURL := *dest
-			if dest.Scheme == "wss" {
-				originURL.Scheme = "https"
-			} else {
-				originURL.Scheme = "http"
-			}
-			origin = originURL.String()
+			originURL.Scheme = "http"
 		}
+		origin := originURL.String()
 
-		var historyFile string
-		user, err := user.Current()
-		if err == nil {
-			historyFile = filepath.Join(user.HomeDir, ".ws_history")
-		}
-
-		err = connect(username, dest.String(), origin, &readline.Config{
-			Prompt:      ":: ",
-			HistoryFile: historyFile,
-		}, options.insecure)
+		err = connect(name, dest.String(), origin, &readline.Config{Prompt: ":: "})
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			if err != io.EOF && err != readline.ErrInterrupt {
@@ -71,29 +55,24 @@ var cmdClient = &cobra.Command{
 	},
 }
 
-var username string
-
-var options struct {
-	origin       string
-	printVersion bool
-	insecure     bool
-}
+var name string
 
 func init() {
-	cmdClient.Flags().StringVarP(&username, "username", "u", "", "username in chartroom")
-	cmdClient.MarkFlagRequired("username")
+	cmdClient.Flags().StringVarP(&name, "name", "u", "", "chatroom's nickname")
+	cmdClient.MarkFlagRequired("name")
 }
 
-func connect(username, url, origin string, rlConf *readline.Config, allowInsecure bool) error {
+func connect(name, url, origin string, rlConf *readline.Config) error {
 	headers := make(http.Header)
 	headers.Add("Origin", origin)
 
 	dialer := websocket.Dialer{
 		Proxy: http.ProxyFromEnvironment,
 		TLSClientConfig: &tls.Config{
-			InsecureSkipVerify: allowInsecure,
+			InsecureSkipVerify: false,
 		},
 	}
+
 	ws, _, err := dialer.Dial(url, headers)
 	if err != nil {
 		return err
@@ -111,22 +90,26 @@ func connect(username, url, origin string, rlConf *readline.Config, allowInsecur
 		errChan: make(chan error),
 	}
 
-	go sess.readConsole(username)
-	go sess.readWebsocket(username)
+	go sess.readConsole(name)
+	go sess.readWebsocket(name)
 
 	return <-sess.errChan
 }
 
-func (s *session) readConsole(username string) {
+func (s *session) readConsole(name string) {
 	for {
 		line, err := s.rl.Readline()
-		line = "[" + username + "]" + " : " + line
 		if err != nil {
 			s.errChan <- err
 			return
 		}
 
-		err = s.ws.WriteMessage(+websocket.TextMessage, []byte(line))
+		msg, err := json.Marshal(Message{Name: name, Msg: line})
+		if err != nil {
+			s.errChan <- err
+			return
+		}
+		err = s.ws.WriteMessage(websocket.TextMessage, msg)
 		if err != nil {
 			s.errChan <- err
 			return
@@ -134,7 +117,7 @@ func (s *session) readConsole(username string) {
 	}
 }
 
-func (s *session) readWebsocket(username string) {
+func (s *session) readWebsocket(name string) {
 	rxSprintf := color.New(color.FgGreen).SprintfFunc()
 
 	for {
@@ -143,17 +126,21 @@ func (s *session) readWebsocket(username string) {
 			s.errChan <- err
 			return
 		}
-
-		var text string
+		var msg Message
 		switch msgType {
 		case websocket.TextMessage:
-			text = string(buf)
+			err := json.Unmarshal(buf, &msg)
+			if err != nil {
+				s.errChan <- err
+				return
+			}
 		default:
 			s.errChan <- fmt.Errorf("unknown websocket frame type: %d", msgType)
 			return
 		}
-		if strings.Index(text, username) < 0 {
-			fmt.Fprint(s.rl.Stdout(), rxSprintf(":: %s\n", text))
+		// 不需要给自己广播
+		if msg.Name != name {
+			fmt.Fprint(s.rl.Stdout(), rxSprintf(":: [%s]: %s\n", msg.Name, msg.Msg))
 		}
 	}
 }

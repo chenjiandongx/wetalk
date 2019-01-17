@@ -13,7 +13,7 @@ var (
 	// 连接客户端
 	clients = make(map[*websocket.Conn]bool)
 	// 广播通道
-	broadcast = make(chan string)
+	broadcast = make(chan []byte)
 	// 服务端端口
 	serverPort int
 	// websockets Upgrader
@@ -67,7 +67,7 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 		// 广播信息
-		broadcast <- string(msg)
+		broadcast <- msg
 	}
 }
 
@@ -77,7 +77,7 @@ func handleMessages() {
 		msg := <-broadcast
 		// 广播信息到所有客户端
 		for client := range clients {
-			err := client.WriteMessage(websocket.TextMessage, []byte(msg))
+			err := client.WriteMessage(websocket.TextMessage, msg)
 			if err != nil {
 				log.Printf("error: %v", err)
 				client.Close()
