@@ -1,7 +1,7 @@
 # 📠 wetalk
 > wetalk is a chatroom application for coders based on websockets
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://opensource.org/licenses/MIT)
+[![Go Report Card](https://goreportcard.com/badge/github.com/chenjiandongx/wetalk)](https://goreportcard.com/report/github.com/chenjiandongx/wetalk) [![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://opensource.org/licenses/MIT)
 
 ### 🔰 安装
 
@@ -43,7 +43,7 @@ Usage:
 
 Flags:
   -h, --help       help for server
-  -p, --port int   server port (default 8087
+  -p, --port int   server port (default 8087)
 ```
 
 $ wetalk server -h
