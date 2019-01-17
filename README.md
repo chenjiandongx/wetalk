@@ -61,5 +61,10 @@ Flags:
 ### 📺 示例
 ![example](https://user-images.githubusercontent.com/19553554/51330669-e7627100-1ab2-11e9-9586-5fb383b6817d.gif)
 
+### 🙏🏻Thanks
+* [hashrocket/ws](https://github.com/hashrocket/ws/blob/master/connection.go)
+* [gorilla/websocket](https://github.com/gorilla/websocket)
+* [scotch-io/go-realtime-chat](https://github.com/scotch-io/go-realtime-chat)
+
 ### 📃 License
 MIT [©chenjiandongx](http://github.com/chenjiandongx)
