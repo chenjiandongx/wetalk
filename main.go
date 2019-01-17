@@ -12,7 +12,7 @@ func main() {
 	rootCmd := &cobra.Command{
 		Use:     "wetalk",
 		Version: "0.1.0",
-		Long: `wetalk is a chatroom application for coders
+		Long: `wetalk is a chatroom application for coders based on websockets
 
 Example:
   start server: wetalk server -p 8086

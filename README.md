@@ -1,5 +1,5 @@
 # 📠 wetalk
-> wetalk is a chatroom application for coders
+> wetalk is a chatroom application for coders based on websockets
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://opensource.org/licenses/MIT)
 
