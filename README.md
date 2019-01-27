@@ -46,7 +46,7 @@ Flags:
   -p, --port int   server port (default 8087)
 ```
 
-$ wetalk server -h
+$ wetalk client -h
 ```
 start websockets client
 
