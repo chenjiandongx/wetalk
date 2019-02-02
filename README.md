@@ -55,7 +55,7 @@ Usage:
 
 Flags:
   -h, --help          help for client
-  -u, --name string   chatroom's nickname
+  -u, --name string   nickname in the chatroom
 ```
 
 ### 📺 示例

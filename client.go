@@ -58,7 +58,7 @@ var cmdClient = &cobra.Command{
 var name string
 
 func init() {
-	cmdClient.Flags().StringVarP(&name, "name", "u", "", "chatroom's nickname")
+	cmdClient.Flags().StringVarP(&name, "name", "u", "", "nickname int the chatroom")
 	cmdClient.MarkFlagRequired("name")
 }
 
